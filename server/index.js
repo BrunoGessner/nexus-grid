@@ -1,6 +1,6 @@
 /**
  * index.js - Servidor Principal Nexus Grid (Express + Socket.io Autoritativo)
- * Configurado para produção no Render.com e suporte a CORS dinâmico
+ * Configurado para produção no Render.com com suporte total a CORS público
  */
 
 const express = require('express');
@@ -12,37 +12,35 @@ const RoomManager = require('./game/RoomManager');
 
 const app = express();
 
-// Permite origens cruzadas em Produção (Vercel/Netlify) e Desenvolvimento
-const allowedOrigins = [
-  process.env.CLIENT_URL,
-  'http://localhost:3000',
-  'http://localhost:5173'
-].filter(Boolean);
-
+// Permite todas as origens para evitar bloqueio por CORS no frontend Vercel/Netlify
 app.use(cors({
-  origin: allowedOrigins.length > 0 && process.env.CLIENT_URL ? allowedOrigins : '*',
-  credentials: true
+  origin: '*',
+  methods: ['GET', 'POST']
 }));
 
 app.use(express.json());
 
 const server = http.createServer(app);
 
-// Socket.io com suporte a WebSocket e Polling para hospedagem no Render
+// Socket.io com suporte completo a WebSocket e Polling
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins.length > 0 && process.env.CLIENT_URL ? allowedOrigins : '*',
-    methods: ['GET', 'POST'],
-    credentials: true
+    origin: '*',
+    methods: ['GET', 'POST']
   },
   transports: ['websocket', 'polling']
 });
 
 const roomManager = new RoomManager(io);
 
-// Endpoints HTTP Básicos
+// Endpoints HTTP
 app.get('/', (req, res) => {
-  res.send('⚡ Servidor Nexus Grid Backend está Online!');
+  res.send(`
+    <div style="font-family: sans-serif; background: #0b0c10; color: #00F0FF; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <h1>⚡ Servidor Backend Nexus Grid está 100% ONLINE!</h1>
+      <p style="color: #ffffff;">Este é o servidor de API/WebSocket. Para jogar o jogo, acesse a URL da <strong>Vercel</strong> do seu frontend.</p>
+    </div>
+  `);
 });
 
 app.get('/api/health', (req, res) => {
