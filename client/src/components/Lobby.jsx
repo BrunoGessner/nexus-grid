@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Play, Users, Link as LinkIcon, Shield, Sparkles, Copy, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Play, Users, Link as LinkIcon, Shield, Sparkles, Copy, Check, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { soundManager } from '../audio/SoundSystem';
 
 const AVATAR_SKINS = [
@@ -14,7 +14,8 @@ export default function Lobby({
   onJoinRoom, 
   roomData, 
   onStartGame,
-  isHost
+  isHost,
+  isConnected
 }) {
   const [playerName, setPlayerName] = useState('');
   const [roomCodeInput, setRoomCodeInput] = useState('');
@@ -58,7 +59,7 @@ export default function Lobby({
               JOGADORES CONECTADOS ({players.length}/4)
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {players.map((p, idx) => (
+              {players.map((p) => (
                 <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '10px 14px', borderRadius: 6, borderLeft: `4px solid ${p.color}` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: '1.2rem' }}>
@@ -99,6 +100,28 @@ export default function Lobby({
   return (
     <div className="lobby-overlay">
       <div className="lobby-card">
+        {/* Status de Conexão com o Servidor */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          fontSize: '0.75rem',
+          fontFamily: 'Share Tech Mono',
+          padding: '4px 12px',
+          borderRadius: 20,
+          background: isConnected ? 'rgba(57, 255, 20, 0.1)' : 'rgba(255, 230, 0, 0.1)',
+          border: `1px solid ${isConnected ? '#39FF14' : '#FFE600'}`,
+          color: isConnected ? '#39FF14' : '#FFE600',
+          alignSelf: 'center'
+        }}>
+          {isConnected ? (
+            <><Wifi size={14} /> SERVIDOR ONLINE</>
+          ) : (
+            <><Loader2 size={14} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} /> ACORDANDO SERVIDOR (RENDER)...</>
+          )}
+        </div>
+
         <div style={{ textAlign: 'center' }}>
           <h2 className="logo-text" style={{ fontSize: '2.2rem' }}>Nexus Grid</h2>
           <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: 4 }}>
@@ -148,6 +171,7 @@ export default function Lobby({
         {/* Botão Criar Nova Sala */}
         <button 
           className="btn-cyber" 
+          disabled={!isConnected}
           onClick={() => {
             if (!playerName.trim()) return alert('Por favor digite um codenome.');
             soundManager.playLockAction();
@@ -155,7 +179,11 @@ export default function Lobby({
           }}
           style={{ width: '100%', justifyContent: 'center' }}
         >
-          <Sparkles size={18} /> CRIAR NOVA SALA MULTIPLAYER
+          {isConnected ? (
+            <><Sparkles size={18} /> CRIAR NOVA SALA MULTIPLAYER</>
+          ) : (
+            <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> CONECTANDO AO SERVIDOR...</>
+          )}
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: 0.5 }}>
@@ -176,6 +204,7 @@ export default function Lobby({
           />
           <button 
             className="btn-cyber btn-magenta"
+            disabled={!isConnected}
             onClick={() => {
               if (!playerName.trim()) return alert('Por favor digite um codenome.');
               if (!roomCodeInput.trim()) return alert('Digite o código da sala.');

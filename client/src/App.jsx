@@ -21,22 +21,35 @@ export default function App() {
   const [isActionsLocked, setIsActionsLocked] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isStoreOpen, setIsStoreOpen] = useState(false);
+  const [isConnected, setIsConnected] = useState(socket.connected);
   
   // Nexus Points do jogador
   const [nexusPoints, setNexusPoints] = useState(150);
   const [unlockedItems, setUnlockedItems] = useState(['palette_synthwave']);
 
-  // Detecta código de sala na URL (Ex: game.com/play/A8F2 ou ?room=A8F2)
+  // Ping no backend Render para acordar o container imediatamente
   useEffect(() => {
-    const pathParts = window.location.pathname.split('/');
-    if (pathParts.length >= 3 && pathParts[1] === 'play') {
-      const codeFromUrl = pathParts[2].toUpperCase();
-      console.log(`Detectado código de sala via URL: ${codeFromUrl}`);
-    }
+    fetch('https://nexus-grid-server-hb5e.onrender.com/api/health')
+      .then(res => res.json())
+      .then(data => console.log('⚡ Render Backend acordado:', data))
+      .catch(err => console.log('Aguardando Render ligar...'));
   }, []);
 
   // Listeners de Eventos do Socket.io
   useEffect(() => {
+    function onConnect() {
+      console.log('✅ Socket Conectado!');
+      setIsConnected(true);
+    }
+
+    function onDisconnect() {
+      console.log('❌ Socket Desconectado');
+      setIsConnected(false);
+    }
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+
     socket.on('room_created', ({ roomCode, player }) => {
       setMyPlayer(player);
     });
@@ -55,7 +68,6 @@ export default function App() {
 
       if (data.chatMessages) setChatMessages(data.chatMessages);
 
-      // Reseta trava de comandos ao entrar na fase de planejamento
       if (data.state === 'PLANNING') {
         setIsActionsLocked(false);
         setResolutionData(null);
@@ -74,7 +86,6 @@ export default function App() {
         setCombatLogs(prev => [...prev, ...data.combatLogs]);
       }
 
-      // Efeito de celebração se houver vencedor
       if (data.isGameOver && data.winner) {
         confetti({
           particleCount: 120,
@@ -90,6 +101,8 @@ export default function App() {
     });
 
     return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
       socket.off('room_created');
       socket.off('room_joined');
       socket.off('room_state_update');
@@ -148,6 +161,7 @@ export default function App() {
           roomData={roomData}
           onStartGame={handleStartGame}
           isHost={isHost}
+          isConnected={isConnected}
         />
       )}
 
