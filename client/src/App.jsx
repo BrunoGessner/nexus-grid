@@ -27,7 +27,7 @@ export default function App() {
   const [nexusPoints, setNexusPoints] = useState(150);
   const [unlockedItems, setUnlockedItems] = useState(['palette_synthwave']);
 
-  // Ping no backend Render para acordar o container imediatamente
+  // Ping no backend Render para garantir container ativo
   useEffect(() => {
     fetch('https://nexus-grid-server-hb5e.onrender.com/api/health')
       .then(res => res.json())
@@ -35,8 +35,19 @@ export default function App() {
       .catch(err => console.log('Aguardando Render ligar...'));
   }, []);
 
-  // Listeners de Eventos do Socket.io
+  // Sync constante do estado da conexão
   useEffect(() => {
+    if (socket.connected) {
+      setIsConnected(true);
+    }
+
+    const checkInterval = setInterval(() => {
+      setIsConnected(socket.connected);
+      if (!socket.connected) {
+        socket.connect();
+      }
+    }, 1000);
+
     function onConnect() {
       console.log('✅ Socket Conectado!');
       setIsConnected(true);
@@ -51,6 +62,7 @@ export default function App() {
     socket.on('disconnect', onDisconnect);
 
     socket.on('room_created', ({ roomCode, player }) => {
+      console.log(`🎉 Sala ${roomCode} criada com sucesso!`);
       setMyPlayer(player);
     });
 
@@ -101,6 +113,7 @@ export default function App() {
     });
 
     return () => {
+      clearInterval(checkInterval);
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('room_created');
@@ -114,10 +127,16 @@ export default function App() {
 
   // Ações do Usuário
   const handleCreateRoom = (playerName, avatarSkin) => {
+    if (!socket.connected) {
+      socket.connect();
+    }
     socket.emit('create_room', { playerName, avatarSkin });
   };
 
   const handleJoinRoom = (roomCode, playerName, avatarSkin) => {
+    if (!socket.connected) {
+      socket.connect();
+    }
     socket.emit('join_room', { roomCode, playerName, avatarSkin });
   };
 

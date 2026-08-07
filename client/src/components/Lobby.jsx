@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Users, Link as LinkIcon, Shield, Sparkles, Copy, Check, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Play, Users, Link as LinkIcon, Shield, Sparkles, Copy, Check, Wifi, Loader2 } from 'lucide-react';
 import { soundManager } from '../audio/SoundSystem';
 
 const AVATAR_SKINS = [
@@ -96,11 +96,11 @@ export default function Lobby({
     );
   }
 
-  // Se não está em nenhuma sala (Menu Inicial)
+  // Menu Inicial
   return (
     <div className="lobby-overlay">
       <div className="lobby-card">
-        {/* Status de Conexão com o Servidor */}
+        {/* Status de Conexão */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -118,7 +118,7 @@ export default function Lobby({
           {isConnected ? (
             <><Wifi size={14} /> SERVIDOR ONLINE</>
           ) : (
-            <><Loader2 size={14} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} /> ACORDANDO SERVIDOR (RENDER)...</>
+            <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> CONECTANDO AO SERVIDOR...</>
           )}
         </div>
 
@@ -171,7 +171,6 @@ export default function Lobby({
         {/* Botão Criar Nova Sala */}
         <button 
           className="btn-cyber" 
-          disabled={!isConnected}
           onClick={() => {
             if (!playerName.trim()) return alert('Por favor digite um codenome.');
             soundManager.playLockAction();
@@ -179,11 +178,7 @@ export default function Lobby({
           }}
           style={{ width: '100%', justifyContent: 'center' }}
         >
-          {isConnected ? (
-            <><Sparkles size={18} /> CRIAR NOVA SALA MULTIPLAYER</>
-          ) : (
-            <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> CONECTANDO AO SERVIDOR...</>
-          )}
+          <Sparkles size={18} /> CRIAR NOVA SALA MULTIPLAYER
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: 0.5 }}>
@@ -204,7 +199,6 @@ export default function Lobby({
           />
           <button 
             className="btn-cyber btn-magenta"
-            disabled={!isConnected}
             onClick={() => {
               if (!playerName.trim()) return alert('Por favor digite um codenome.');
               if (!roomCodeInput.trim()) return alert('Digite o código da sala.');
