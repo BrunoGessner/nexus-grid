@@ -1,0 +1,22 @@
+# Node modules
+node_modules/
+client/node_modules/
+
+# Build & Dist
+client/dist/
+client/dist-ssr/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS & Editor Files
+.DS_Store
+.vscode/
+.idea/
